@@ -1,0 +1,43 @@
+function [res, errRes] = P2Z39_BMA_inverse_method(A, x, maxIter, maxErr)
+% Projekt 2, zadanie 39
+% Bartosz Maj, 320710
+% 
+% Próba znalezienia najmniejszej (co do wartości bezwzględnej) wartości ...
+% własnej macierzy A, za pomocą odwrotnej metody potęgowej z normowaniem
+% Wejście:
+%   A       - zespolona, nieosobliwa macierz kwadratowa, z której ...
+%             będziemy wyliczać wartości własne 
+%   x       - początkowy, niezerowy, pionowy wektor przybliżeń
+%   maxIter - maksymalna liczba iteracji
+%   maxErr  - maksymalny błąd względny między dwoma kolejnymi ...
+%             przybliżeniami wartości własnej
+% Wyjście:
+%   res     - ostatnie obliczone przybliżenie najmniejszej (co do ...
+%             wartości bezwzględnej) wartości własnej macierzy A
+%   errRes  - błąd ostatniego wyliczonego przybliżenia
+
+% obliczam pierwsze przyblizenie wartosci wlasnej
+x = x / norm(x, 2);
+res = x' * A * x;
+% korzystam z rozkladu PA = LU
+[P, L, U] = PALU(A);
+for iter = 1:maxIter
+    % obliczam kolejny wektor przyblizen korzystajac z rozkladu PA = LU
+    Px = P * x;
+    y1 = DownGEPP(L, Px);
+    y2 = UpGEPP(U, y1);
+    res_prev = res;
+    % normalizuje wektor otrzymany z rozwiazania ukladu rownan
+    x = y2 / norm(y2, 2);
+    % obliczam kolejne przyblizenie wartosci wlasnej
+    res = x' * A * x;
+    errRes = abs(res - res_prev) / abs(res);
+    % sprawdzam warunek stopu lub czy dwa kolejne przyblizenia sa rowne 0 
+    if errRes < maxErr || isnan(errRes)
+        if isnan(errRes)
+            errRes = 0;
+        end % if
+        break
+    end % if
+end % for
+end % function
