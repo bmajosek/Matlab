@@ -1,0 +1,55 @@
+function [res] = P1Z34_BMA_double_integral(f, a, b, c, d, n, m)
+% Projekt 1, zadanie 34
+% Bartosz Maj, 320710
+% 
+% Obliczanie całek podwójnych złożoną kwadraturą Simpsona po zmiennej x ...
+% oraz złożoną kwadraturą prostokątów z punktem środkowym po zmiennej y ...
+% na obszarze D = [a, b] x [c, d]
+% Wejście:
+%   f     - uchwyt do funkcji podcałkowej f(x, y), z której będziemy ...
+%           wyliczać podwójną całkę
+%   a     - początek przedziału całkowania po zmiennej x za pomocą ...
+%           kwadratury Simpsona
+%   b     - koniec przedziału całkowania po zmiennej x za pomocą ...
+%           kwadratury Simpsona
+%   c     - początek przedziału całkowania po zmiennej y za pomocą ...
+%           kwadratury prostokątów z punktem środkowym
+%   d     - koniec przedziału całkowania po zmiennej y za pomocą ...
+%           kwadratury prostokątów z punktem środkowym
+%   n     - liczba węzłów kwadratury Simpsona na przedziale [a, b]
+%   m     - liczba węzłów kwadratury prostokątów z punktem środkowym ...
+%           na przedziale [c, d]
+% Wyjście:
+%   res   - wynik podwójnej całki uzyskany metodami numerycznymi
+
+% Obliczam dlugosci podprzedzialow
+Hsimpson = (b - a) / n;
+Hprostokat = (d - c) / m;
+H = Hprostokat * Hsimpson / 6;
+% Obliczam wspolczynniki przy kwadraturze Simspona
+A = [1 repmat([4 2], 1, n-1) 4 1];
+% Obliczam wezly kwadratur
+Xsimpson = a:(Hsimpson / 2):b;
+Yprostokat = (c + (Hprostokat / 2)):Hprostokat:d;
+% sprawdzam, czy zmiesci sie tyle wezlow w macierzy, jezeli program ... 
+% zacznie wykonywac tego if'a moze to potrwac dlugi czas
+user = memory;
+maxSize = user.MemUsedMATLAB;
+if n * m > maxSize / 4
+    res = 0;
+    % obliczam wszystkie wartosci i sumuje
+    for i = 1:length(Xsimpson) 
+        for j = 1:length(Yprostokat)
+            % obliczam wynik dodajac kolejna wartosc
+            res = res + f(Xsimpson(i), Yprostokat(j)) * A(i);
+        end % for
+    end % for
+    % obliczam wynik
+    res = res * H;
+% jezeli sie zmiesci w macierzy to obliczam zwektoryzowana metoda
+else 
+    % obliczam wynik koncowy sumujac wszystkie wartosci w macierzy oraz ...
+    % domnazajac przez H
+    res = H * sum(f(Xsimpson, Yprostokat') .* A, 'all');
+end % if
+end % function
